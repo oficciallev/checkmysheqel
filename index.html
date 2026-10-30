@@ -11,7 +11,7 @@
     <style>
         :root {
             --bg-color: #0b0f19;
-            --card-bg: rgba(22, 31, 48, 0.7);
+            --card-bg: rgba(22, 31, 48, 0.75);
             --card-border: rgba(255, 255, 255, 0.08);
             --text-main: #f8fafc;
             --text-sub: #94a3b8;
@@ -24,8 +24,8 @@
 
         [data-theme="light"] {
             --bg-color: #f1f5f9;
-            --card-bg: rgba(255, 255, 255, 0.8);
-            --card-border: rgba(0, 0, 0, 0.06);
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --card-border: rgba(0, 0, 0, 0.08);
             --text-main: #0f172a;
             --text-sub: #64748b;
             --accent: #4f46e5;
@@ -51,7 +51,7 @@
             margin: 0;
             padding: 0;
             font-family: var(--font-family);
-            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+            transition: background-color 0.2s, color 0.2s;
         }
 
         body {
@@ -63,73 +63,66 @@
             margin: 0 auto;
         }
 
-        /* Верхняя панель */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
         .brand {
             font-size: 20px;
             font-weight: 800;
             background: var(--accent-gradient);
+            background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        .controls {
-            display: flex;
-            gap: 8px;
-        }
+        .controls { display: flex; gap: 6px; }
 
-        select {
+        select, input {
             background: var(--card-bg);
             color: var(--text-main);
             border: 1px solid var(--card-border);
-            padding: 8px 12px;
+            padding: 8px 10px;
             border-radius: 12px;
             font-size: 13px;
             outline: none;
-            backdrop-filter: blur(10px);
         }
 
-        /* Карточки */
         .card {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
             border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 16px;
+            padding: 18px;
+            margin-bottom: 14px;
             backdrop-filter: blur(12px);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
         }
 
         .balance-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 12px;
+            gap: 10px;
+            margin-top: 10px;
         }
 
         .sub-card {
             background: rgba(255, 255, 255, 0.03);
-            padding: 12px;
-            border-radius: 14px;
+            padding: 10px;
+            border-radius: 12px;
             border: 1px solid var(--card-border);
         }
 
-        .val-income { color: var(--income); font-weight: 700; font-size: 18px; }
-        .val-expense { color: var(--expense); font-weight: 700; font-size: 18px; }
+        .val-income { color: var(--income); font-weight: 700; font-size: 16px; }
+        .val-expense { color: var(--expense); font-weight: 700; font-size: 16px; }
 
-        /* Переключатель периода аналитики */
         .time-tabs {
             display: flex;
             background: rgba(0, 0, 0, 0.2);
             padding: 4px;
             border-radius: 12px;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
 
         .tab-btn {
@@ -149,10 +142,9 @@
             color: white;
         }
 
-        /* Переключатель тип транзакции */
         .type-toggle {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             margin-bottom: 12px;
         }
 
@@ -167,70 +159,56 @@
             cursor: pointer;
         }
 
-        .type-btn.active[data-type="expense"] {
-            background: var(--expense);
-            color: white;
-            border-color: var(--expense);
-        }
+        .type-btn.active[data-type="expense"] { background: var(--expense); color: white; border-color: var(--expense); }
+        .type-btn.active[data-type="income"] { background: var(--income); color: white; border-color: var(--income); }
 
-        .type-btn.active[data-type="income"] {
-            background: var(--income);
-            color: white;
-            border-color: var(--income);
-        }
-
-        /* Формы */
-        .form-group { margin-bottom: 12px; }
-        label { display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 6px; }
-        input {
-            width: 100%;
-            padding: 14px;
-            border-radius: 12px;
-            border: 1px solid var(--card-border);
-            background: rgba(0,0,0,0.15);
-            color: var(--text-main);
-            font-size: 16px;
-            outline: none;
-        }
+        .form-group { margin-bottom: 10px; }
+        .form-group label { display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 4px; }
+        .form-group input, .form-group select { width: 100%; padding: 12px; font-size: 15px; }
 
         .btn-submit {
             width: 100%;
-            padding: 16px;
-            border-radius: 14px;
+            padding: 14px;
+            border-radius: 12px;
             border: none;
             background: var(--accent-gradient);
             color: white;
             font-weight: 700;
-            font-size: 16px;
+            font-size: 15px;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
         }
 
-        /* Список */
         .tx-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 0;
+            padding: 10px 0;
             border-bottom: 1px solid var(--card-border);
         }
 
         .tx-item:last-child { border-bottom: none; }
 
         .tx-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 12px;
-            font-size: 18px;
+            margin-right: 10px;
+            font-size: 16px;
         }
 
-        [dir="rtl"] .tx-icon { margin-right: 0; margin-left: 12px; }
+        [dir="rtl"] .tx-icon { margin-right: 0; margin-left: 10px; }
 
-        .chart-box { height: 220px; position: relative; }
+        .search-box {
+            width: 100%;
+            margin-bottom: 12px;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .chart-box { height: 200px; position: relative; }
     </style>
 </head>
 <body>
@@ -259,8 +237,8 @@
 
     <!-- Обзор баланса -->
     <div class="card">
-        <span style="color:var(--text-sub); font-size:13px;" data-i18n="netBalance">Текущий баланс</span>
-        <h1 id="netBalance" style="font-size:32px; margin-top:4px;">0 ₪</h1>
+        <span style="color:var(--text-sub); font-size:12px;" data-i18n="totalBalance">Общий баланс</span>
+        <h1 id="netBalance" style="font-size:28px; margin-top:2px;">0 ₪</h1>
         <div class="balance-grid">
             <div class="sub-card">
                 <span style="font-size:11px; color:var(--text-sub);" data-i18n="incomes">Доходы</span>
@@ -273,7 +251,7 @@
         </div>
     </div>
 
-    <!-- Аналитика и Графики -->
+    <!-- Аналитика -->
     <div class="card">
         <div class="time-tabs">
             <button class="tab-btn active" onclick="setPeriod('month')" id="tabMonth" data-i18n="thisMonth">Месяц</button>
@@ -284,7 +262,7 @@
         </div>
     </div>
 
-    <!-- Добавление записи -->
+    <!-- Форма создания -->
     <div class="card">
         <div class="type-toggle">
             <button class="type-btn active" data-type="expense" onclick="setType('expense')" data-i18n="expense">Расход</button>
@@ -309,9 +287,10 @@
         <button class="btn-submit" onclick="addTransaction()" data-i18n="save">Сохранить</button>
     </div>
 
-    <!-- История -->
+    <!-- История и Поиск -->
     <div class="card">
-        <div style="font-weight:700; margin-bottom:12px;" data-i18n="history">История операций</div>
+        <div style="font-weight:700; margin-bottom:10px;" data-i18n="history">История операций</div>
+        <input type="text" id="searchInput" class="search-box" oninput="render()" placeholder="🔍 Поиск по заметкам и категориям...">
         <div id="txList"></div>
     </div>
 
@@ -321,33 +300,60 @@
 
         const dict = {
             ru: {
-                netBalance: "Чистый баланс", incomes: "Доходы", expenses: "Расходы",
+                totalBalance: "Общий баланс за период", incomes: "Доходы", expenses: "Расходы",
                 thisMonth: "Этот месяц", thisYear: "Весь год", expense: "Расход", income: "Доход",
                 amount: "Сумма", category: "Категория", note: "Заметка", save: "Зафиксировать",
-                history: "История операций", noData: "Нет транзакций за период",
+                history: "История операций", noData: "Нет транзакций",
                 cats: {
-                    food: "🍔 Еда", transport: "🚗 Транспорт", home: "🏠 Жилье",
-                    fun: "🎉 Отдых", salary: "💼 Зарплата", biz: "📈 Бизнес", gift: "🎁 Подарок"
+                    food: "🍔 Еда и продукты",
+                    transport: "🚗 Транспорт и такси",
+                    home: "🏠 Жилье и КУ",
+                    health: "💊 Здоровье и аптека",
+                    beauty: "💄 Красота и уход",
+                    fun: "🎉 Отдых и развлечения",
+                    shopping: "🛍️ Шопинг и одежда",
+                    other: "📦 Другое",
+                    salary: "💼 Зарплата",
+                    biz: "📈 Бизнес / Проекты",
+                    gift: "🎁 Подарок"
                 }
             },
             en: {
-                netBalance: "Net Balance", incomes: "Incomes", expenses: "Expenses",
+                totalBalance: "Total Period Balance", incomes: "Incomes", expenses: "Expenses",
                 thisMonth: "This Month", thisYear: "This Year", expense: "Expense", income: "Income",
                 amount: "Amount", category: "Category", note: "Note", save: "Save Entry",
-                history: "Transaction History", noData: "No data for this period",
+                history: "History", noData: "No transactions",
                 cats: {
-                    food: "🍔 Food", transport: "🚗 Transport", home: "🏠 Housing",
-                    fun: "🎉 Leisure", salary: "💼 Salary", biz: "📈 Business", gift: "🎁 Gift"
+                    food: "🍔 Food & Groceries",
+                    transport: "🚗 Transport & Taxi",
+                    home: "🏠 Housing",
+                    health: "💊 Health & Pharmacy",
+                    beauty: "💄 Beauty & Care",
+                    fun: "🎉 Leisure & Fun",
+                    shopping: "🛍️ Shopping & Clothes",
+                    other: "📦 Other",
+                    salary: "💼 Salary",
+                    biz: "📈 Business / Projects",
+                    gift: "🎁 Gift"
                 }
             },
             he: {
-                netBalance: "מאזן כולל", incomes: "הכנסות", expenses: "הוצאות",
+                totalBalance: "מאזן כולל לתקופה", incomes: "הכנסות", expenses: "הוצאות",
                 thisMonth: "חודש נוכחי", thisYear: "שנה נוכחית", expense: "הוצאה", income: "הכנסה",
                 amount: "סכום", category: "קטגוריה", note: "הערה", save: "שמור רישום",
-                history: "היסטוריית פעולות", noData: "אין נתונים לתקופה זו",
+                history: "היסטוריה", noData: "אין נתונים",
                 cats: {
-                    food: "🍔 אוכל", transport: "🚗 תחבורה", home: "🏠 דיור",
-                    fun: "🎉 בילויים", salary: "💼 משכורת", biz: "📈 עסקים", gift: "🎁 מתנה"
+                    food: "🍔 אוכל וקניות",
+                    transport: "🚗 תחבורה ומוניות",
+                    home: "🏠 דיור ושירותים",
+                    health: "💊 בריאות ובית מרקחת",
+                    beauty: "💄 טיפוח ויופי",
+                    fun: "🎉 בילויים ופנאי",
+                    shopping: "🛍️ שופינג וביגוד",
+                    other: "📦 אחר",
+                    salary: "💼 משכורת",
+                    biz: "📈 עסקים ופרויקטים",
+                    gift: "🎁 מתנה"
                 }
             }
         };
@@ -422,7 +428,7 @@
             select.innerHTML = '';
             const c = dict[state.lang].cats;
             const keys = state.type === 'expense' 
-                ? ['food', 'transport', 'home', 'fun'] 
+                ? ['food', 'transport', 'home', 'health', 'beauty', 'fun', 'shopping', 'other'] 
                 : ['salary', 'biz', 'gift'];
 
             keys.forEach(k => {
@@ -461,29 +467,37 @@
         }
 
         function deleteItem(id) {
-            state.items = state.items.filter(i => i.id !== id);
-            localStorage.setItem('cfg_data', JSON.stringify(state.items));
-            render();
+            if (confirm("Удалить эту запись?")) {
+                state.items = state.items.filter(i => i.id !== id);
+                localStorage.setItem('cfg_data', JSON.stringify(state.items));
+                render();
+            }
         }
 
         function initChart() {
             const ctx = document.getElementById('analyticsChart').getContext('2d');
             chart = new Chart(ctx, {
                 type: 'doughnut',
-                data: { labels: [], datasets: [{ data: [], backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#f43f5e', '#8b5cf6'] }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } } }
+                data: { labels: [], datasets: [{ data: [], backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#f43f5e', '#8b5cf6', '#ec4899', '#06b6d4', '#64748b'] }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 11 } } } } }
             });
         }
 
         function render() {
             const now = new Date();
+            const search = document.getElementById('searchInput').value.toLowerCase();
+
             const filtered = state.items.filter(i => {
                 const d = new Date(i.date);
-                if (state.period === 'month') {
-                    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-                } else {
-                    return d.getFullYear() === now.getFullYear();
-                }
+                const inPeriod = state.period === 'month' 
+                    ? (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear())
+                    : (d.getFullYear() === now.getFullYear());
+
+                const catText = (dict[state.lang].cats[i.cat] || '').toLowerCase();
+                const noteText = (i.note || '').toLowerCase();
+                const inSearch = !search || catText.includes(search) || noteText.includes(search);
+
+                return inPeriod && inSearch;
             });
 
             let inc = 0, exp = 0;
@@ -501,17 +515,21 @@
             document.getElementById('totalIncome').textContent = `+${fmt(inc)}`;
             document.getElementById('totalExpense').textContent = `-${fmt(exp)}`;
 
-            // Обновление списка
+            // Отрисовка списка
             const list = document.getElementById('txList');
             list.innerHTML = '';
 
             if (filtered.length === 0) {
-                list.innerHTML = `<div style="text-align:center; color:var(--text-sub); padding:20px;">${dict[state.lang].noData}</div>`;
+                list.innerHTML = `<div style="text-align:center; color:var(--text-sub); padding:16px;">${dict[state.lang].noData}</div>`;
             } else {
                 filtered.forEach(i => {
                     const icon = i.type === 'income' ? 'fa-arrow-down-left' : 'fa-arrow-up-right';
                     const col = i.type === 'income' ? 'var(--income)' : 'var(--expense)';
                     const catName = dict[state.lang].cats[i.cat] || i.cat;
+                    
+                    // Красивый формат даты и времени
+                    const d = new Date(i.date);
+                    const dateStr = `${d.getDate().toString().padStart(2, '0')}.${(d.getMonth() + 1).toString().padStart(2, '0')} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
 
                     const el = document.createElement('div');
                     el.className = 'tx-item';
@@ -519,13 +537,13 @@
                         <div style="display:flex; align-items:center;">
                             <div class="tx-icon" style="background:${col}22; color:${col};"><i class="fa-solid ${icon}"></i></div>
                             <div>
-                                <div style="font-weight:600;">${catName}</div>
-                                <div style="font-size:12px; color:var(--text-sub);">${i.note || new Date(i.date).toLocaleDateString()}</div>
+                                <div style="font-weight:600; font-size:14px;">${catName}</div>
+                                <div style="font-size:11px; color:var(--text-sub);">${i.note ? i.note + ' • ' : ''}${dateStr}</div>
                             </div>
                         </div>
                         <div style="display:flex; align-items:center;">
-                            <span style="font-weight:700; color:${col};">${i.type === 'income' ? '+' : '-'}${fmt(i.amount)}</span>
-                            <i class="fa-solid fa-trash" style="color:var(--text-sub); margin-left:12px; cursor:pointer;" onclick="deleteItem(${i.id})"></i>
+                            <span style="font-weight:700; font-size:14px; color:${col};">${i.type === 'income' ? '+' : '-'}${fmt(i.amount)}</span>
+                            <i class="fa-solid fa-trash" style="color:var(--text-sub); margin-left:10px; cursor:pointer; font-size:12px;" onclick="deleteItem(${i.id})"></i>
                         </div>
                     `;
                     list.appendChild(el);
