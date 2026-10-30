@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Finance Tracker - Telegram Mini App</title>
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        tgBg: 'var(--tg-theme-bg-color, #0f172a)',
+                        tgSecondaryBg: 'var(--tg-theme-secondary-bg-color, #1e293b)',
+                        tgText: 'var(--tg-theme-text-color, #f8fafc)',
+                        tgHint: 'var(--tg-theme-hint-color, #94a3b8)',
+                        tgButton: 'var(--tg-theme-button-color, #3b82f6)',
+                        tgButtonText: 'var(--tg-theme-button-text-color, #ffffff)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: var(--tg-theme-bg-color, #0f172a);
+            color: var(--tg-theme-text-color, #f8fafc);
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-modal {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        /* Hide scrollbars */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Active click animation */
+        .btn-press {
+            transition: transform 0.1s ease, opacity 0.1s ease;
+        }
+        .btn-press:active {
+            transform: scale(0.96);
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-24 text-slate-100 flex flex-col justify-between">
+
+    <!-- Top Navigation / Header -->
+    <div class="px-4 pt-4 pb-2 sticky top-0 z-10 glass-card rounded-b-2xl mb-4 border-t-0 border-x-0">
+        <div class="flex justify-between items-center mb-3">
+            <div class="flex items-center space-x-3">
+                <div id="userAvatar" class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-lg shadow-lg shadow-blue-500/30">
+                    U
+                </div>
+                <div>
+                    <h1 id="userName" class="font-semibold text-sm text-slate-300">Пользователь</h1>
+                    <p class="text-xs text-slate-400">Финансовый обзор</p>
+                </div>
+            </div>
+            <button onclick="triggerHaptic('impact', 'light'); toggleTheme();" class="p-2 rounded-full bg-slate-800/80 text-slate-300 hover:text-white btn-press">
+                <i class="fa-solid fa-moon text-sm"></i>
+            </button>
+        </div>
+
+        <!-- Total Stats Overview -->
+        <div class="grid grid-cols-2 gap-3 my-2">
+            <div class="p-3 rounded-xl bg-slate-800/50 border border-slate-700/50">
+                <span class="text-xs text-slate-400 block mb-1">Траты за сегодня</span>
+                <span id="todayTotal" class="text-xl font-bold text-emerald-400">0 ₽</span>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-800/50 border border-slate-700/50">
+                <span class="text-xs text-slate-400 block mb-1">Всего за месяц</span>
+                <span id="monthTotal" class="text-xl font-bold text-blue-400">0 ₽</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Container -->
+    <main class="px-4 space-y-5 flex-1 max-w-lg mx-auto w-full">
+
+        <!-- Chart Section -->
+        <div class="glass-card rounded-2xl p-4">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="font-semibold text-sm text-slate-200">Расходы по категориям</h2>
+                <span class="text-xs text-slate-400" id="currentMonthYear"></span>
+            </div>
+            
+            <div class="relative w-full aspect-square max-h-[220px] mx-auto flex items-center justify-center">
+                <canvas id="expenseChart"></canvas>
+                <div id="noChartData" class="absolute inset-0 flex flex-col items-center justify-center text-slate-500 hidden">
+                    <i class="fa-solid fa-chart-pie text-3xl mb-1"></i>
+                    <span class="text-xs">Нет данных</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transactions Header & Filter -->
+        <div class="flex justify-between items-center pt-2">
+            <h2 class="font-semibold text-base text-slate-200">История операций</h2>
+            <button onclick="clearAllExpenses()" class="text-xs text-rose-400 hover:text-rose-300 btn-press">
+                Очистить всё
+            </button>
+        </div>
+
+        <!-- Transactions List -->
+        <div id="transactionsList" class="space-y-2">
+            <!-- Dynamic elements will be inserted here -->
+        </div>
+
+        <!-- Empty State Message -->
+        <div id="emptyState" class="glass-card rounded-2xl p-8 text-center text-slate-400 hidden">
+            <i class="fa-solid fa-receipt text-4xl mb-3 text-slate-600"></i>
+            <p class="text-sm font-medium">Список трат пуст</p>
+            <p class="text-xs text-slate-500 mt-1">Нажмите «+» ниже, чтобы добавить первую транзакцию</p>
+        </div>
+
+    </main>
+
+    <!-- Floating Action Button (FAB) -->
+    <div class="fixed bottom-6 left-0 right-0 px-4 flex justify-center z-20 pointer-events-none">
+        <button onclick="openAddModal()" class="pointer-events-auto bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium px-6 py-3.5 rounded-full shadow-lg shadow-blue-500/40 flex items-center space-x-2 text-sm btn-press">
+            <i class="fa-solid fa-plus text-base"></i>
+            <span>Добавить расход</span>
+        </button>
+    </div>
+
+    <!-- Add Expense Modal (Bottom Sheet Style) -->
+    <div id="addModal" class="fixed inset-0 z-30 flex items-end justify-center hidden">
+        <!-- Backdrop -->
+        <div onclick="closeAddModal()" class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"></div>
+
+        <!-- Modal Content -->
+        <div class="relative w-full max-w-lg glass-modal rounded-t-3xl p-6 border-t border-slate-700/50 shadow-2xl transition-all transform translate-y-0">
+            <div class="w-12 h-1.5 bg-slate-700 rounded-full mx-auto mb-5"></div>
+            
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-white">Новый расход</h3>
+                <button onclick="closeAddModal()" class="text-slate-400 hover:text-white p-1 btn-press">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form id="expenseForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
+                <!-- Amount Input -->
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Сумма (₽)</label>
+                    <div class="relative">
+                        <input type="number" step="0.01" id="amountInput" placeholder="0.00" required
+                            class="w-full bg-slate-900/80 border border-slate-700 rounded-xl px-4 py-3 text-white text-xl font-semibold focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-semibold">₽</span>
+                    </div>
+                </div>
+
+                <!-- Category Selector -->
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Категория</label>
+                    <div class="grid grid-cols-3 gap-2" id="categorySelector">
+                        <!-- Category Options JS injected -->
+                    </div>
+                </div>
+
+                <!-- Note Input -->
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Заметка / Комментарий</label>
+                    <input type="text" id="noteInput" placeholder="Например: Обед в кафе"
+                        class="w-full bg-slate-900/80 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500">
+                </div>
+
+                <!-- Date Input -->
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Дата</label>
+                    <input type="date" id="dateInput" required
+                        class="w-full bg-slate-900/80 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500">
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3.5 rounded-xl shadow-lg shadow-blue-600/30 text-sm mt-2 btn-press">
+                    Сохранить
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Application JavaScript Logic -->
+    <script>
+        // === Telegram WebApp Initialization ===
+        const tg = window.Telegram ? window.Telegram.WebApp : null;
+
+        if (tg) {
+            tg.ready();
+            tg.expand();
+            // Sync theme header color
+            if (tg.setHeaderColor) tg.setHeaderColor('#0f172a');
+        }
+
+        // Haptic Feedback Helper
+        function triggerHaptic(type = 'impact', style = 'light') {
+            if (tg && tg.HapticFeedback) {
+                if (type === 'impact') tg.HapticFeedback.impactOccurred(style);
+                if (type === 'notification') tg.HapticFeedback.notificationOccurred(style);
+                if (type === 'selection') tg.HapticFeedback.selectionChanged();
+            }
+        }
+
+        // === Categories Definition ===
+        const CATEGORIES = [
+            { id: 'food', name: 'Еда', icon: 'fa-utensils', color: '#f59e0b', bg: 'bg-amber-500/10', text: 'text-amber-500' },
+            { id: 'transport', name: 'Транспорт', icon: 'fa-car', color: '#3b82f6', bg: 'bg-blue-500/10', text: 'text-blue-500' },
+            { id: 'home', name: 'Дом', icon: 'fa-house', color: '#10b981', bg: 'bg-emerald-500/10', text: 'text-emerald-500' },
+            { id: 'fun', name: 'Развлечения', icon: 'fa-gamepad', color: '#ec4899', bg: 'bg-ping-500/10', text: 'text-pink-500' },
+            { id: 'other', name: 'Другое', icon: 'fa-ellipsis', color: '#8b5cf6', bg: 'bg-purple-500/10', text: 'text-purple-500' }
+        ];
+
+        // App State
+        let expenses = JSON.parse(localStorage.getItem('tg_expenses')) || [];
+        let selectedCategory = CATEGORIES[0].id;
+        let chartInstance = null;
+
+        // === Initialize App ===
+        window.addEventListener('DOMContentLoaded', () => {
+            initUserData();
+            initCategorySelector();
+            setDefaultDate();
+            renderApp();
+        });
+
+        // Set User Information from Telegram WebApp SDK
+        function initUserData() {
+            if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                const user = tg.initDataUnsafe.user;
+                document.getElementById('userName').textContent = `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Пользователь';
+                document.getElementById('userAvatar').textContent = (user.first_name || 'U').charAt(0).toUpperCase();
+            }
+
+            const now = new Date();
+            const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+            document.getElementById('currentMonthYear').textContent = `${monthNames[now.getMonth()]} ${now.getFullYear()}`;
+        }
+
+        // Setup Category Selector inside Modal
+        function initCategorySelector() {
+            const container = document.getElementById('categorySelector');
+            container.innerHTML = CATEGORIES.map(cat => `
+                <button type="button" onclick="selectCategory('${cat.id}')" id="cat-btn-${cat.id}"
+                    class="flex flex-col items-center justify-center p-2.5 rounded-xl border border-slate-700/60 bg-slate-800/40 text-slate-300 transition-all btn-press">
+                    <i class="fa-solid ${cat.icon} text-base mb-1 ${cat.text}"></i>
+                    <span class="text-xs font-medium">${cat.name}</span>
+                </button>
+            `).join('');
+            selectCategory(selectedCategory);
+        }
+
+        function selectCategory(id) {
+            triggerHaptic('selection');
+            selectedCategory = id;
+            CATEGORIES.forEach(cat => {
+                const btn = document.getElementById(`cat-btn-${cat.id}`);
+                if (cat.id === id) {
+                    btn.className = `flex flex-col items-center justify-center p-2.5 rounded-xl border-2 border-blue-500 bg-blue-500/10 text-white transition-all btn-press`;
+                } else {
+                    btn.className = `flex flex-col items-center justify-center p-2.5 rounded-xl border border-slate-700/60 bg-slate-800/40 text-slate-400 transition-all btn-press`;
+                }
+            });
+        }
+
+        function setDefaultDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('dateInput').value = today;
+        }
+
+        // === Render Loop ===
+        function renderApp() {
+            updateTotals();
+            renderChart();
+            renderTransactions();
+        }
+
+        // Calculate Totals (Today & Month)
+        function updateTotals() {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+
+            let todaySum = 0;
+            let monthSum = 0;
+
+            expenses.forEach(item => {
+                const itemDate = new Date(item.date);
+                if (item.date === todayStr) {
+                    todaySum += item.amount;
+                }
+                if (itemDate.getMonth() === currentMonth && itemDate.getFullYear() === currentYear) {
+                    monthSum += item.amount;
+                }
+            });
+
+            document.getElementById('todayTotal').textContent = `${todaySum.toLocaleString('ru-RU')} ₽`;
+            document.getElementById('monthTotal').textContent = `${monthSum.toLocaleString('ru-RU')} ₽`;
+        }
+
+        // Render History List
+        function renderTransactions() {
+            const list = document.getElementById('transactionsList');
+            const emptyState = document.getElementById('emptyState');
+
+            if (expenses.length === 0) {
+                list.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+
+            // Sort by date descending
+            const sorted = [...expenses].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            list.innerHTML = sorted.map(item => {
+                const cat = CATEGORIES.find(c => c.id === item.category) || CATEGORIES[4];
+                return `
+                    <div class="glass-card rounded-xl p-3 flex items-center justify-between border-slate-800/80">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-xl ${cat.bg} ${cat.text} flex items-center justify-center text-base">
+                                <i class="fa-solid ${cat.icon}"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium text-sm text-slate-100">${item.note || cat.name}</div>
+                                <div class="text-xs text-slate-400">${formatDate(item.date)} • ${cat.name}</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <span class="font-semibold text-sm text-slate-100">-${item.amount.toLocaleString('ru-RU')} ₽</span>
+                            <button onclick="deleteExpense('${item.id}')" class="text-slate-500 hover:text-rose-400 p-1 btn-press">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Format Date string
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+        }
+
+        // === Chart Rendering ===
+        function renderChart() {
+            const ctx = document.getElementById('expenseChart').getContext('2d');
+            const noDataEl = document.getElementById('noChartData');
+
+            // Group amounts by category
+            const categoryTotals = CATEGORIES.map(cat => {
+                return expenses
+                    .filter(e => e.category === cat.id)
+                    .reduce((sum, e) => sum + e.amount, 0);
+            });
+
+            const hasData = categoryTotals.some(val => val > 0);
+
+            if (!hasData) {
+                if (chartInstance) chartInstance.destroy();
+                noDataEl.classList.remove('hidden');
+                return;
+            }
+
+            noDataEl.classList.add('hidden');
+
+            if (chartInstance) {
+                chartInstance.data.datasets[0].data = categoryTotals;
+                chartInstance.update();
+                return;
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: CATEGORIES.map(c => c.name),
+                    datasets: [{
+                        data: categoryTotals,
+                        backgroundColor: CATEGORIES.map(c => c.color),
+                        borderWidth: 0,
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#94a3b8',
+                                font: { family: 'Inter', size: 11 },
+                                boxWidth: 10,
+                                padding: 12
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` ${context.label}: ${context.raw.toLocaleString('ru-RU')} ₽`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+        }
+
+        // === Actions ===
+        function openAddModal() {
+            triggerHaptic('impact', 'medium');
+            document.getElementById('addModal').classList.remove('hidden');
+        }
+
+        function closeAddModal() {
+            triggerHaptic('impact', 'light');
+            document.getElementById('addModal').classList.add('hidden');
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+
+            const amount = parseFloat(document.getElementById('amountInput').value);
+            const note = document.getElementById('noteInput').value.trim();
+            const date = document.getElementById('dateInput').value;
+
+            if (!amount || amount <= 0) return;
+
+            const newExpense = {
+                id: Date.now().toString(),
+                amount: amount,
+                category: selectedCategory,
+                note: note,
+                date: date
+            };
+
+            expenses.push(newExpense);
+            saveExpenses();
+            renderApp();
+
+            // Reset Form & Close Modal
+            document.getElementById('amountInput').value = '';
+            document.getElementById('noteInput').value = '';
+            closeAddModal();
+
+            triggerHaptic('notification', 'success');
+        }
+
+        function deleteExpense(id) {
+            triggerHaptic('impact', 'medium');
+            expenses = expenses.filter(item => item.id !== id);
+            saveExpenses();
+            renderApp();
+        }
+
+        function clearAllExpenses() {
+            if (expenses.length === 0) return;
+            if (confirm('Вы уверены, что хотите удалить всю историю трат?')) {
+                triggerHaptic('notification', 'warning');
+                expenses = [];
+                saveExpenses();
+                renderApp();
+            }
+        }
+
+        function saveExpenses() {
+            localStorage.setItem('tg_expenses', JSON.stringify(expenses));
+        }
+
+        function toggleTheme() {
+            // Theme toggle stub
+            document.body.classList.toggle('light-theme');
+        }
+    </script>
+</body>
+</html>
