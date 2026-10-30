@@ -55,15 +55,22 @@
             margin: 0 auto;
         }
 
+        /* Поправленная шапка: 2 строчки */
         .header {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .header-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 16px;
         }
 
         .brand {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 700;
             color: var(--text-main);
             display: flex;
@@ -71,30 +78,38 @@
             gap: 8px;
         }
 
-        .controls { display: flex; gap: 8px; }
+        .controls { 
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            width: 100%;
+        }
 
         .select-wrapper {
             display: flex;
             align-items: center;
-            gap: 4px;
+            justify-content: center;
+            gap: 6px;
             background: var(--card-bg);
             border: 1px solid var(--card-border);
-            padding: 4px 8px;
+            padding: 8px 10px;
             border-radius: 10px;
         }
 
         .select-wrapper i {
-            font-size: 12px;
+            font-size: 13px;
             color: var(--text-sub);
         }
 
-        select, input {
+        select {
             background: transparent;
             color: var(--text-main);
             border: none;
             font-size: 13px;
+            font-weight: 600;
             outline: none;
             cursor: pointer;
+            width: 100%;
         }
 
         .card {
@@ -133,13 +148,13 @@
 
         .tab-btn {
             flex: 1;
-            padding: 6px;
+            padding: 8px;
             border: none;
             background: none;
             color: var(--text-sub);
             border-radius: 8px;
-            font-weight: 500;
-            font-size: 12px;
+            font-weight: 600;
+            font-size: 13px;
             cursor: pointer;
         }
 
@@ -203,18 +218,13 @@
             font-weight: 600;
             font-size: 14px;
             cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .btn-submit:hover {
-            background: var(--btn-main-hover);
         }
 
         .tx-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 0;
+            padding: 12px 0;
             border-bottom: 1px solid var(--card-border);
         }
 
@@ -236,21 +246,23 @@
 
         .tx-details { display: flex; flex-direction: column; gap: 2px; }
         .tx-date-badge {
-            font-size: 10px;
+            font-size: 11px;
             color: var(--text-sub);
             display: inline-flex;
             align-items: center;
             gap: 4px;
         }
 
-        .chart-box { height: 180px; position: relative; }
+        .chart-box { height: 180px; position: relative; margin-top: 10px; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div class="brand">
-            <i class="fa-solid fa-wallet"></i> CheckMySheqel
+        <div class="header-top">
+            <div class="brand">
+                <i class="fa-solid fa-wallet"></i> CheckMySheqel
+            </div>
         </div>
         <div class="controls">
             <div class="select-wrapper">
@@ -433,23 +445,26 @@
             items: JSON.parse(localStorage.getItem('cfg_data') || '[]')
         };
 
-        let chart;
+        let chart = null;
 
         document.addEventListener("DOMContentLoaded", () => {
             document.getElementById('langSelect').value = state.lang;
             document.getElementById('themeSelect').value = state.theme;
             document.getElementById('currSelect').value = state.curr;
             
-            // Установка дефолтной текущей даты в инпут
-            const now = new Date();
-            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-            document.getElementById('txDate').value = now.toISOString().slice(0,16);
+            // Установка дефолтной даты
+            resetDateField();
 
             setTheme(state.theme);
             setLang(state.lang);
-            initChart();
             render();
         });
+
+        function resetDateField() {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('txDate').value = now.toISOString().slice(0,16);
+        }
 
         function setTheme(t) {
             state.theme = t;
@@ -532,6 +547,7 @@
 
             document.getElementById('txAmount').value = '';
             document.getElementById('txNote').value = '';
+            resetDateField();
 
             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
             render();
@@ -545,14 +561,27 @@
             }
         }
 
-        function initChart() {
+        function updateChartColors() {
+            if (!chart) return;
+            chart.options.plugins.legend.labels.color = state.theme === 'dark' ? '#94a3b8' : '#64748b';
+            chart.update();
+        }
+
+        function renderChart(catMap) {
             const ctx = document.getElementById('analyticsChart').getContext('2d');
+            const labels = Object.keys(catMap);
+            const data = Object.values(catMap);
+
+            if (chart) {
+                chart.destroy();
+            }
+
             chart = new Chart(ctx, {
                 type: 'doughnut',
                 data: { 
-                    labels: [], 
+                    labels: labels, 
                     datasets: [{ 
-                        data: [], 
+                        data: data, 
                         backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#64748b'],
                         borderWidth: 0
                     }] 
@@ -570,17 +599,13 @@
             });
         }
 
-        function updateChartColors() {
-            if (!chart) return;
-            chart.options.plugins.legend.labels.color = state.theme === 'dark' ? '#94a3b8' : '#64748b';
-            chart.update();
-        }
-
         function render() {
             const now = new Date();
 
             const filtered = state.items.filter(i => {
                 const d = new Date(i.date);
+                if (isNaN(d.getTime())) return false;
+
                 if (state.period === 'month') {
                     return (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear());
                 } else {
@@ -592,8 +617,9 @@
             const catMap = {};
 
             filtered.forEach(i => {
-                if (i.type === 'income') inc += i.amount;
-                else {
+                if (i.type === 'income') {
+                    inc += i.amount;
+                } else {
                     exp += i.amount;
                     const catName = dict[state.lang].expCats[i.cat] || i.cat;
                     catMap[catName] = (catMap[catName] || 0) + i.amount;
@@ -645,10 +671,7 @@
                 });
             }
 
-            // График
-            chart.data.labels = Object.keys(catMap);
-            chart.data.datasets[0].data = Object.values(catMap);
-            updateChartColors();
+            renderChart(catMap);
         }
     </script>
 </body>
