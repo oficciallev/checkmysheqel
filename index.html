@@ -3,45 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CheckMySheqel Pro</title>
+    <title>CheckMySheqel Minimal</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         :root {
-            --bg-color: #0b0f19;
-            --card-bg: rgba(22, 31, 48, 0.75);
-            --card-border: rgba(255, 255, 255, 0.08);
-            --text-main: #f8fafc;
-            --text-sub: #94a3b8;
-            --accent: #6366f1;
-            --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            --income: #10b981;
-            --expense: #f43f5e;
+            /* Темная пастельная тема (по умолчанию) */
+            --bg-color: #121214;
+            --card-bg: #1a1a1e;
+            --card-border: #2a2a30;
+            --text-main: #ececef;
+            --text-sub: #8e8e99;
+            --accent: #9d8ec7;
+            --income: #72b095;
+            --expense: #e07a7a;
+            --input-bg: #141417;
             --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
 
         [data-theme="light"] {
-            --bg-color: #f1f5f9;
-            --card-bg: rgba(255, 255, 255, 0.85);
-            --card-border: rgba(0, 0, 0, 0.08);
-            --text-main: #0f172a;
-            --text-sub: #64748b;
-            --accent: #4f46e5;
-            --accent-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-        }
-
-        [data-theme="neon"] {
-            --bg-color: #05050a;
-            --card-bg: rgba(15, 15, 25, 0.9);
-            --card-border: #00f0ff33;
-            --text-main: #ffffff;
-            --text-sub: #00f0ff;
-            --accent: #00f0ff;
-            --accent-gradient: linear-gradient(135deg, #00f0ff 0%, #ff007f 100%);
-            --expense: #ff0055;
-            --income: #00ff66;
+            /* Светлая пастельная тема */
+            --bg-color: #f7f7f9;
+            --card-bg: #ffffff;
+            --card-border: #eaeaea;
+            --text-main: #1f1f23;
+            --text-sub: #7d7d8a;
+            --accent: #6b5b95;
+            --income: #4e8d7c;
+            --expense: #d96b6b;
+            --input-bg: #f2f2f5;
         }
 
         [dir="rtl"] { text-align: right; }
@@ -51,7 +43,7 @@
             margin: 0;
             padding: 0;
             font-family: var(--font-family);
-            transition: background-color 0.2s, color 0.2s;
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
         }
 
         body {
@@ -71,22 +63,20 @@
         }
 
         .brand {
-            font-size: 20px;
-            font-weight: 800;
-            background: var(--accent-gradient);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: var(--text-main);
         }
 
         .controls { display: flex; gap: 6px; }
 
         select, input {
-            background: var(--card-bg);
+            background: var(--input-bg);
             color: var(--text-main);
             border: 1px solid var(--card-border);
             padding: 8px 10px;
-            border-radius: 12px;
+            border-radius: 10px;
             font-size: 13px;
             outline: none;
         }
@@ -94,52 +84,71 @@
         .card {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
-            border-radius: 20px;
+            border-radius: 16px;
             padding: 18px;
             margin-bottom: 14px;
-            backdrop-filter: blur(12px);
         }
 
         .balance-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
-            margin-top: 10px;
+            margin-top: 12px;
         }
 
         .sub-card {
-            background: rgba(255, 255, 255, 0.03);
+            background: var(--input-bg);
             padding: 10px;
-            border-radius: 12px;
+            border-radius: 10px;
             border: 1px solid var(--card-border);
         }
 
-        .val-income { color: var(--income); font-weight: 700; font-size: 16px; }
-        .val-expense { color: var(--expense); font-weight: 700; font-size: 16px; }
+        .val-income { color: var(--income); font-weight: 600; font-size: 15px; }
+        .val-expense { color: var(--expense); font-weight: 600; font-size: 15px; }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .metric-card {
+            background: var(--input-bg);
+            padding: 8px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid var(--card-border);
+        }
+
+        .metric-title { font-size: 10px; color: var(--text-sub); margin-bottom: 4px; }
+        .metric-value { font-size: 12px; font-weight: 600; color: var(--text-main); }
 
         .time-tabs {
             display: flex;
-            background: rgba(0, 0, 0, 0.2);
-            padding: 4px;
-            border-radius: 12px;
+            background: var(--input-bg);
+            padding: 3px;
+            border-radius: 10px;
             margin-bottom: 12px;
+            border: 1px solid var(--card-border);
         }
 
         .tab-btn {
             flex: 1;
-            padding: 8px;
+            padding: 6px;
             border: none;
             background: none;
             color: var(--text-sub);
             border-radius: 8px;
-            font-weight: 600;
-            font-size: 13px;
+            font-weight: 500;
+            font-size: 12px;
             cursor: pointer;
         }
 
         .tab-btn.active {
-            background: var(--accent-gradient);
-            color: white;
+            background: var(--card-bg);
+            color: var(--text-main);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
         .type-toggle {
@@ -150,31 +159,41 @@
 
         .type-btn {
             flex: 1;
-            padding: 10px;
-            border-radius: 10px;
+            padding: 8px;
+            border-radius: 8px;
             border: 1px solid var(--card-border);
-            background: transparent;
+            background: var(--input-bg);
             color: var(--text-sub);
-            font-weight: 600;
+            font-weight: 500;
+            font-size: 13px;
             cursor: pointer;
         }
 
-        .type-btn.active[data-type="expense"] { background: var(--expense); color: white; border-color: var(--expense); }
-        .type-btn.active[data-type="income"] { background: var(--income); color: white; border-color: var(--income); }
+        .type-btn.active[data-type="expense"] {
+            background: rgba(224, 122, 122, 0.15);
+            color: var(--expense);
+            border-color: var(--expense);
+        }
+
+        .type-btn.active[data-type="income"] {
+            background: rgba(114, 176, 149, 0.15);
+            color: var(--income);
+            border-color: var(--income);
+        }
 
         .form-group { margin-bottom: 10px; }
-        .form-group label { display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 4px; }
-        .form-group input, .form-group select { width: 100%; padding: 12px; font-size: 15px; }
+        .form-group label { display: block; font-size: 11px; color: var(--text-sub); margin-bottom: 4px; }
+        .form-group input { width: 100%; padding: 10px; font-size: 14px; }
 
         .btn-submit {
             width: 100%;
-            padding: 14px;
-            border-radius: 12px;
+            padding: 12px;
+            border-radius: 10px;
             border: none;
-            background: var(--accent-gradient);
-            color: white;
-            font-weight: 700;
-            font-size: 15px;
+            background: var(--accent);
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 14px;
             cursor: pointer;
         }
 
@@ -189,26 +208,46 @@
         .tx-item:last-child { border-bottom: none; }
 
         .tx-icon {
-            width: 38px;
-            height: 38px;
-            border-radius: 10px;
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
             margin-right: 10px;
-            font-size: 16px;
+            font-size: 14px;
+            flex-shrink: 0;
         }
 
         [dir="rtl"] .tx-icon { margin-right: 0; margin-left: 10px; }
 
+        .tx-details { display: flex; flex-direction: column; gap: 2px; }
+        .tx-date-badge {
+            font-size: 10px;
+            color: var(--text-sub);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
         .search-box {
             width: 100%;
             margin-bottom: 12px;
-            padding: 10px;
-            border-radius: 10px;
+            padding: 8px;
+            border-radius: 8px;
         }
 
-        .chart-box { height: 200px; position: relative; }
+        .export-btn {
+            background: transparent;
+            border: 1px solid var(--card-border);
+            color: var(--text-sub);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .chart-box { height: 180px; position: relative; }
     </style>
 </head>
 <body>
@@ -217,9 +256,8 @@
         <div class="brand">CheckMySheqel</div>
         <div class="controls">
             <select id="themeSelect" onchange="setTheme(this.value)">
-                <option value="dark">🌙 Dark</option>
-                <option value="light">☀️ Light</option>
-                <option value="neon">⚡ Neon</option>
+                <option value="dark">🖤 Dark</option>
+                <option value="light">🤍 Light</option>
             </select>
             <select id="langSelect" onchange="setLang(this.value)">
                 <option value="ru">RU</option>
@@ -237,32 +275,49 @@
 
     <!-- Обзор баланса -->
     <div class="card">
-        <span style="color:var(--text-sub); font-size:12px;" data-i18n="totalBalance">Общий баланс</span>
-        <h1 id="netBalance" style="font-size:28px; margin-top:2px;">0 ₪</h1>
+        <span style="color:var(--text-sub); font-size:12px;" data-i18n="totalBalance">Баланс за период</span>
+        <h1 id="netBalance" style="font-size:26px; margin-top:2px; font-weight: 600;">0 ₪</h1>
         <div class="balance-grid">
             <div class="sub-card">
-                <span style="font-size:11px; color:var(--text-sub);" data-i18n="incomes">Доходы</span>
+                <span style="font-size:10px; color:var(--text-sub);" data-i18n="incomes">Доходы</span>
                 <div class="val-income" id="totalIncome">+0 ₪</div>
             </div>
             <div class="sub-card">
-                <span style="font-size:11px; color:var(--text-sub);" data-i18n="expenses">Расходы</span>
+                <span style="font-size:10px; color:var(--text-sub);" data-i18n="expenses">Расходы</span>
                 <div class="val-expense" id="totalExpense">-0 ₪</div>
             </div>
         </div>
     </div>
 
-    <!-- Аналитика -->
+    <!-- Расширенная Аналитика -->
     <div class="card">
         <div class="time-tabs">
-            <button class="tab-btn active" onclick="setPeriod('month')" id="tabMonth" data-i18n="thisMonth">Месяц</button>
-            <button class="tab-btn" onclick="setPeriod('year')" id="tabYear" data-i18n="thisYear">Год</button>
+            <button class="tab-btn active" onclick="setPeriod('month')" id="tabMonth" data-i18n="thisMonth">Этот месяц</button>
+            <button class="tab-btn" onclick="setPeriod('lastMonth')" id="tabLastMonth" data-i18n="lastMonth">Прошлый месяц</button>
+            <button class="tab-btn" onclick="setPeriod('year')" id="tabYear" data-i18n="thisYear">Весь год</button>
         </div>
+
+        <div class="analytics-grid">
+            <div class="metric-card">
+                <div class="metric-title" data-i18n="dailyAvg">В день (ср.)</div>
+                <div class="metric-value" id="metricDaily">0 ₪</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-title" data-i18n="topCategory">Топ расход</div>
+                <div class="metric-value" id="metricTop">—</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-title" data-i18n="savingsRate">Сбережения</div>
+                <div class="metric-value" id="metricSavings">0%</div>
+            </div>
+        </div>
+
         <div class="chart-box">
             <canvas id="analyticsChart"></canvas>
         </div>
     </div>
 
-    <!-- Форма создания -->
+    <!-- Форма записи -->
     <div class="card">
         <div class="type-toggle">
             <button class="type-btn active" data-type="expense" onclick="setType('expense')" data-i18n="expense">Расход</button>
@@ -275,22 +330,28 @@
         </div>
 
         <div class="form-group">
-            <label data-i18n="category">Категория</label>
-            <select id="txCategory"></select>
-        </div>
-
-        <div class="form-group">
-            <label data-i18n="note">Заметка</label>
-            <input type="text" id="txNote" placeholder="...">
+            <label data-i18n="source">Источник / Категория</label>
+            <input type="text" id="txSource" list="sourceSuggestions" placeholder="Продукты, Зарплата, Такси...">
+            <datalist id="sourceSuggestions">
+                <option value="Продукты"></option>
+                <option value="Кафе и Еда"></option>
+                <option value="Транспорт"></option>
+                <option value="Зарплата"></option>
+                <option value="Аренда / КУ"></option>
+                <option value="Покупки"></option>
+            </datalist>
         </div>
 
         <button class="btn-submit" onclick="addTransaction()" data-i18n="save">Сохранить</button>
     </div>
 
-    <!-- История и Поиск -->
+    <!-- История -->
     <div class="card">
-        <div style="font-weight:700; margin-bottom:10px;" data-i18n="history">История операций</div>
-        <input type="text" id="searchInput" class="search-box" oninput="render()" placeholder="🔍 Поиск по заметкам и категориям...">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <div style="font-weight:600; font-size:14px;" data-i18n="history">История операций</div>
+            <button class="export-btn" onclick="exportToCSV()"><i class="fa-solid fa-file-csv"></i> CSV</button>
+        </div>
+        <input type="text" id="searchInput" class="search-box" oninput="render()" placeholder="🔍 Поиск по записям...">
         <div id="txList"></div>
     </div>
 
@@ -300,61 +361,25 @@
 
         const dict = {
             ru: {
-                totalBalance: "Общий баланс за период", incomes: "Доходы", expenses: "Расходы",
-                thisMonth: "Этот месяц", thisYear: "Весь год", expense: "Расход", income: "Доход",
-                amount: "Сумма", category: "Категория", note: "Заметка", save: "Зафиксировать",
-                history: "История операций", noData: "Нет транзакций",
-                cats: {
-                    food: "🍔 Еда и продукты",
-                    transport: "🚗 Транспорт и такси",
-                    home: "🏠 Жилье и КУ",
-                    health: "💊 Здоровье и аптека",
-                    beauty: "💄 Красота и уход",
-                    fun: "🎉 Отдых и развлечения",
-                    shopping: "🛍️ Шопинг и одежда",
-                    other: "📦 Другое",
-                    salary: "💼 Зарплата",
-                    biz: "📈 Бизнес / Проекты",
-                    gift: "🎁 Подарок"
-                }
+                totalBalance: "Баланс за период", incomes: "Доходы", expenses: "Расходы",
+                thisMonth: "Этот месяц", lastMonth: "Прошлый месяц", thisYear: "Весь год", 
+                expense: "Расход", income: "Доход", amount: "Сумма", source: "Источник / Категория",
+                save: "Сохранить", history: "История операций", noData: "Нет записей",
+                dailyAvg: "В день (ср.)", topCategory: "Топ расход", savingsRate: "Сбережения"
             },
             en: {
-                totalBalance: "Total Period Balance", incomes: "Incomes", expenses: "Expenses",
-                thisMonth: "This Month", thisYear: "This Year", expense: "Expense", income: "Income",
-                amount: "Amount", category: "Category", note: "Note", save: "Save Entry",
-                history: "History", noData: "No transactions",
-                cats: {
-                    food: "🍔 Food & Groceries",
-                    transport: "🚗 Transport & Taxi",
-                    home: "🏠 Housing",
-                    health: "💊 Health & Pharmacy",
-                    beauty: "💄 Beauty & Care",
-                    fun: "🎉 Leisure & Fun",
-                    shopping: "🛍️ Shopping & Clothes",
-                    other: "📦 Other",
-                    salary: "💼 Salary",
-                    biz: "📈 Business / Projects",
-                    gift: "🎁 Gift"
-                }
+                totalBalance: "Period Balance", incomes: "Incomes", expenses: "Expenses",
+                thisMonth: "This Month", lastMonth: "Last Month", thisYear: "This Year", 
+                expense: "Expense", income: "Income", amount: "Amount", source: "Source / Category",
+                save: "Save Entry", history: "History", noData: "No entries",
+                dailyAvg: "Daily Avg", topCategory: "Top Expense", savingsRate: "Saved"
             },
             he: {
-                totalBalance: "מאזן כולל לתקופה", incomes: "הכנסות", expenses: "הוצאות",
-                thisMonth: "חודש נוכחי", thisYear: "שנה נוכחית", expense: "הוצאה", income: "הכנסה",
-                amount: "סכום", category: "קטגוריה", note: "הערה", save: "שמור רישום",
-                history: "היסטוריה", noData: "אין נתונים",
-                cats: {
-                    food: "🍔 אוכל וקניות",
-                    transport: "🚗 תחבורה ומוניות",
-                    home: "🏠 דיור ושירותים",
-                    health: "💊 בריאות ובית מרקחת",
-                    beauty: "💄 טיפוח ויופי",
-                    fun: "🎉 בילויים ופנאי",
-                    shopping: "🛍️ שופינג וביגוד",
-                    other: "📦 אחר",
-                    salary: "💼 משכורת",
-                    biz: "📈 עסקים ופרויקטים",
-                    gift: "🎁 מתנה"
-                }
+                totalBalance: "מאזן לתקופה", incomes: "הכנסות", expenses: "הוצאות",
+                thisMonth: "חודש נוכחי", lastMonth: "חודש שעבר", thisYear: "שנה נוכחית", 
+                expense: "הוצאה", income: "הכנסה", amount: "סכום", source: "מקור / קטגוריה",
+                save: "שמור רישום", history: "היסטוריה", noData: "אין נתונים",
+                dailyAvg: "ממוצע ליום", topCategory: "הוצאה עיקרית", savingsRate: "חיסכון"
             }
         };
 
@@ -386,6 +411,7 @@
             state.theme = t;
             localStorage.setItem('cfg_theme', t);
             document.documentElement.setAttribute('data-theme', t);
+            if (chart) updateChartColors();
         }
 
         function setLang(l) {
@@ -398,7 +424,6 @@
                 if (dict[l][k]) el.textContent = dict[l][k];
             });
 
-            updateCatDropdown();
             render();
         }
 
@@ -411,6 +436,7 @@
         function setPeriod(p) {
             state.period = p;
             document.getElementById('tabMonth').classList.toggle('active', p === 'month');
+            document.getElementById('tabLastMonth').classList.toggle('active', p === 'lastMonth');
             document.getElementById('tabYear').classList.toggle('active', p === 'year');
             render();
         }
@@ -420,23 +446,6 @@
             document.querySelectorAll('.type-btn').forEach(b => {
                 b.classList.toggle('active', b.getAttribute('data-type') === t);
             });
-            updateCatDropdown();
-        }
-
-        function updateCatDropdown() {
-            const select = document.getElementById('txCategory');
-            select.innerHTML = '';
-            const c = dict[state.lang].cats;
-            const keys = state.type === 'expense' 
-                ? ['food', 'transport', 'home', 'health', 'beauty', 'fun', 'shopping', 'other'] 
-                : ['salary', 'biz', 'gift'];
-
-            keys.forEach(k => {
-                const opt = document.createElement('option');
-                opt.value = k;
-                opt.textContent = c[k];
-                select.appendChild(opt);
-            });
         }
 
         function fmt(val) {
@@ -445,14 +454,15 @@
 
         function addTransaction() {
             const amt = parseFloat(document.getElementById('txAmount').value);
-            if (!amt || amt <= 0) return;
+            const src = document.getElementById('txSource').value.trim();
+
+            if (!amt || amt <= 0 || !src) return;
 
             const item = {
                 id: Date.now(),
                 amount: amt,
                 type: state.type,
-                cat: document.getElementById('txCategory').value,
-                note: document.getElementById('txNote').value.trim(),
+                source: src,
                 date: new Date().toISOString()
             };
 
@@ -460,27 +470,63 @@
             localStorage.setItem('cfg_data', JSON.stringify(state.items));
 
             document.getElementById('txAmount').value = '';
-            document.getElementById('txNote').value = '';
+            document.getElementById('txSource').value = '';
 
             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
             render();
         }
 
         function deleteItem(id) {
-            if (confirm("Удалить эту запись?")) {
+            if (confirm("Удалить запись?")) {
                 state.items = state.items.filter(i => i.id !== id);
                 localStorage.setItem('cfg_data', JSON.stringify(state.items));
                 render();
             }
         }
 
+        function exportToCSV() {
+            if (state.items.length === 0) return alert("Нет данных");
+            let csv = "ID,Type,Amount,Source,Date\n";
+            state.items.forEach(i => {
+                csv += `${i.id},${i.type},${i.amount},"${i.source}",${i.date}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('href', url);
+            a.setAttribute('download', 'finances.csv');
+            a.click();
+        }
+
         function initChart() {
             const ctx = document.getElementById('analyticsChart').getContext('2d');
             chart = new Chart(ctx, {
                 type: 'doughnut',
-                data: { labels: [], datasets: [{ data: [], backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#f43f5e', '#8b5cf6', '#ec4899', '#06b6d4', '#64748b'] }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 11 } } } } }
+                data: { 
+                    labels: [], 
+                    datasets: [{ 
+                        data: [], 
+                        backgroundColor: ['#9d8ec7', '#72b095', '#e07a7a', '#dca872', '#7cb0d4', '#d88cb8', '#88c4b6'],
+                        borderWidth: 0
+                    }] 
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { 
+                        legend: { 
+                            position: 'bottom', 
+                            labels: { color: state.theme === 'dark' ? '#8e8e99' : '#7d7d8a', font: { size: 10 } } 
+                        } 
+                    } 
+                }
             });
+        }
+
+        function updateChartColors() {
+            if (!chart) return;
+            chart.options.plugins.legend.labels.color = state.theme === 'dark' ? '#8e8e99' : '#7d7d8a';
+            chart.update();
         }
 
         function render() {
@@ -489,13 +535,19 @@
 
             const filtered = state.items.filter(i => {
                 const d = new Date(i.date);
-                const inPeriod = state.period === 'month' 
-                    ? (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear())
-                    : (d.getFullYear() === now.getFullYear());
+                let inPeriod = false;
 
-                const catText = (dict[state.lang].cats[i.cat] || '').toLowerCase();
-                const noteText = (i.note || '').toLowerCase();
-                const inSearch = !search || catText.includes(search) || noteText.includes(search);
+                if (state.period === 'month') {
+                    inPeriod = (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear());
+                } else if (state.period === 'lastMonth') {
+                    const lastM = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                    inPeriod = (d.getMonth() === lastM.getMonth() && d.getFullYear() === lastM.getFullYear());
+                } else {
+                    inPeriod = (d.getFullYear() === now.getFullYear());
+                }
+
+                const srcText = (i.source || '').toLowerCase();
+                const inSearch = !search || srcText.includes(search);
 
                 return inPeriod && inSearch;
             });
@@ -507,7 +559,7 @@
                 if (i.type === 'income') inc += i.amount;
                 else {
                     exp += i.amount;
-                    catMap[i.cat] = (catMap[i.cat] || 0) + i.amount;
+                    catMap[i.source] = (catMap[i.source] || 0) + i.amount;
                 }
             });
 
@@ -515,45 +567,62 @@
             document.getElementById('totalIncome').textContent = `+${fmt(inc)}`;
             document.getElementById('totalExpense').textContent = `-${fmt(exp)}`;
 
-            // Отрисовка списка
+            // Метрики
+            const daysInPeriod = state.period === 'year' ? 365 : (now.getDate() || 1);
+            const dailyAvg = exp / daysInPeriod;
+            document.getElementById('metricDaily').textContent = fmt(dailyAvg);
+
+            let topCat = "—";
+            let maxVal = 0;
+            for (let [cat, val] of Object.entries(catMap)) {
+                if (val > maxVal) { maxVal = val; topCat = cat; }
+            }
+            document.getElementById('metricTop').textContent = topCat;
+
+            const savings = inc > 0 ? Math.max(0, Math.round(((inc - exp) / inc) * 100)) : 0;
+            document.getElementById('metricSavings').textContent = `${savings}%`;
+
+            // Список
             const list = document.getElementById('txList');
             list.innerHTML = '';
 
             if (filtered.length === 0) {
-                list.innerHTML = `<div style="text-align:center; color:var(--text-sub); padding:16px;">${dict[state.lang].noData}</div>`;
+                list.innerHTML = `<div style="text-align:center; color:var(--text-sub); padding:16px; font-size:13px;">${dict[state.lang].noData}</div>`;
             } else {
                 filtered.forEach(i => {
                     const icon = i.type === 'income' ? 'fa-arrow-down-left' : 'fa-arrow-up-right';
                     const col = i.type === 'income' ? 'var(--income)' : 'var(--expense)';
-                    const catName = dict[state.lang].cats[i.cat] || i.cat;
                     
-                    // Красивый формат даты и времени
                     const d = new Date(i.date);
-                    const dateStr = `${d.getDate().toString().padStart(2, '0')}.${(d.getMonth() + 1).toString().padStart(2, '0')} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+                    const day = d.getDate().toString().padStart(2, '0');
+                    const month = (d.getMonth() + 1).toString().padStart(2, '0');
+                    const hours = d.getHours().toString().padStart(2, '0');
+                    const minutes = d.getMinutes().toString().padStart(2, '0');
+                    const formattedDate = `${day}.${month}.${d.getFullYear()} • ${hours}:${minutes}`;
 
                     const el = document.createElement('div');
                     el.className = 'tx-item';
                     el.innerHTML = `
                         <div style="display:flex; align-items:center;">
-                            <div class="tx-icon" style="background:${col}22; color:${col};"><i class="fa-solid ${icon}"></i></div>
-                            <div>
-                                <div style="font-weight:600; font-size:14px;">${catName}</div>
-                                <div style="font-size:11px; color:var(--text-sub);">${i.note ? i.note + ' • ' : ''}${dateStr}</div>
+                            <div class="tx-icon" style="background:${col}1a; color:${col};"><i class="fa-solid ${icon}"></i></div>
+                            <div class="tx-details">
+                                <div style="font-weight:600; font-size:13px;">${i.source}</div>
+                                <div class="tx-date-badge"><i class="fa-regular fa-clock" style="font-size:9px;"></i> ${formattedDate}</div>
                             </div>
                         </div>
                         <div style="display:flex; align-items:center;">
-                            <span style="font-weight:700; font-size:14px; color:${col};">${i.type === 'income' ? '+' : '-'}${fmt(i.amount)}</span>
-                            <i class="fa-solid fa-trash" style="color:var(--text-sub); margin-left:10px; cursor:pointer; font-size:12px;" onclick="deleteItem(${i.id})"></i>
+                            <span style="font-weight:600; font-size:13px; color:${col};">${i.type === 'income' ? '+' : '-'}${fmt(i.amount)}</span>
+                            <i class="fa-solid fa-trash" style="color:var(--text-sub); margin-left:12px; cursor:pointer; font-size:11px;" onclick="deleteItem(${i.id})"></i>
                         </div>
                     `;
                     list.appendChild(el);
                 });
             }
 
-            // График
-            chart.data.labels = Object.keys(catMap).map(k => dict[state.lang].cats[k] || k);
+            // Диаграмма
+            chart.data.labels = Object.keys(catMap);
             chart.data.datasets[0].data = Object.values(catMap);
-            chart.update();
+            updateChartColors();
         }
     </script>
 </body>
