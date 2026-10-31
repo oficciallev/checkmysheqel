@@ -5,119 +5,75 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #121212; color: #fff; margin: 0; padding: 16px; }
-        .card { background: #1e1e1e; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
-        .metric-title { color: #888; font-size: 12px; }
-        .metric-val { font-size: 22px; color: #2ea6ff; font-weight: bold; margin-top: 4px; }
-        input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #222; color: #fff; box-sizing: border-box; margin-bottom: 12px; }
-        button { width: 100%; padding: 12px; border-radius: 8px; border: none; background: #2ea6ff; color: #fff; font-weight: bold; cursor: pointer; }
-        ul { list-style: none; padding: 0; margin: 8px 0 0; }
-        li { padding: 8px 0; border-bottom: 1px solid #2a2a2a; display: flex; justify-content: space-between; font-size: 14px; }
-        .error { color: #ff5252; font-size: 14px; display: none; margin-top: 8px; }
+        body { font-family: sans-serif; background: #121212; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: #1e1e1e; padding: 20px; border-radius: 12px; width: 100%; max-width: 400px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        input, button { width: 100%; padding: 10px; margin-top: 10px; border-radius: 6px; border: none; box-sizing: border-box; }
+        input { background: #2a2a2a; color: white; border: 1px solid #444; }
+        button { background: #28a745; color: white; cursor: pointer; font-weight: bold; }
+        .error { color: #ff4d4d; font-size: 14px; margin-top: 8px; display: none; }
+        .stat-item { background: #2a2a2a; padding: 12px; margin-top: 8px; border-radius: 6px; }
     </style>
 </head>
 <body>
 
-    <!-- ВХОД ПО ПАРОЛЮ -->
-    <div id="login-screen" class="card" style="max-width: 360px; margin: 40px auto;">
+    <div class="card" id="login-block">
         <h2>🔒 Вход в Админку</h2>
         <input type="password" id="password-input" placeholder="Введите пароль">
         <button onclick="login()">Войти</button>
-        <div id="login-error" class="error">Неверный пароль</div>
+        <div class="error" id="login-error">Неверный пароль</div>
     </div>
 
-    <!-- ДАШБОРД (СКРЫТ ДО АВТОРИЗАЦИИ) -->
-    <div id="dashboard-screen" style="display: none;">
-        <h2 style="font-size: 20px; margin-bottom: 16px;">📊 Статистика</h2>
-
-        <div class="grid">
-            <div class="card">
-                <div class="metric-title">Уникальные юзеры</div>
-                <div class="metric-val" id="metric-users">0</div>
-            </div>
-            <div class="card">
-                <div class="metric-title">Всего заходов</div>
-                <div class="metric-val" id="metric-opens">0</div>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="metric-title">Создано транзакций</div>
-            <div class="metric-val" id="metric-txs">0</div>
-        </div>
-
-        <div class="card">
-            <h3 style="margin-top:0;">Популярные категории</h3>
-            <ul id="categories-list"></ul>
-        </div>
-
-        <div class="card">
-            <h3 style="margin-top:0;">Лента событий</h3>
-            <ul id="events-feed"></ul>
-        </div>
-
-        <button onclick="logout()" style="background: #333; margin-top: 10px;">Выйти</button>
+    <div class="card" id="dashboard-block" style="display: none;">
+        <h2>📊 Аналитика</h2>
+        <div class="stat-item">Всего открытий приложения: <strong id="app-opens">0</strong></div>
+        <div class="stat-item">Всего пользователей: <strong id="total-users">0</strong></div>
+        <button onclick="logout()" style="background: #dc3545;">Выйти</button>
     </div>
 
     <script>
-        const BACKEND_URL = "https://wake-muscular-dangle.ngrok-free.dev";
+        const BACKEND_URL = "http://localhost:8000";
+
         document.addEventListener('DOMContentLoaded', () => {
             const token = localStorage.getItem('admin_token');
             if (token) loadStats(token);
         });
 
- async function login() {
-    const password = document.getElementById('password-input').value;
-    const errorEl = document.getElementById('login-error');
-    errorEl.style.display = 'none';
+        async function login() {
+            const password = document.getElementById('password-input').value;
+            const errorEl = document.getElementById('login-error');
+            errorEl.style.display = 'none';
 
-    try {
-        // Добавили BACKEND_URL перед адресом и заголовок ngrok-skip-browser-warning
-        const res = await fetch(`${BACKEND_URL}/api/admin/login`, {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'ngrok-skip-browser-warning': 'true'
-            },
-            body: JSON.stringify({ password })
-        });
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/admin/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
 
-        if (!res.ok) throw new Error();
+                if (!res.ok) throw new Error();
 
-        const data = await res.json();
-        localStorage.setItem('admin_token', data.token);
-        loadStats(data.token);
-    } catch (err) {
-        errorEl.style.display = 'block';
-    }
-}
+                const data = await res.json();
+                localStorage.setItem('admin_token', data.token);
+                loadStats(data.token);
+            } catch (err) {
+                errorEl.style.display = 'block';
+            }
+        }
 
         async function loadStats(token) {
             try {
-                const res = await fetch('/api/admin/stats', {
+                const res = await fetch(`${BACKEND_URL}/api/admin/stats`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-
-                if (!res.ok) { logout(); return; }
-
+                
+                if (!res.ok) return logout();
                 const data = await res.json();
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('dashboard-screen').style.display = 'block';
+                
+                document.getElementById('login-block').style.display = 'none';
+                document.getElementById('dashboard-block').style.display = 'block';
 
-                document.getElementById('metric-users').innerText = data.metrics.unique_users;
-                document.getElementById('metric-opens').innerText = data.metrics.total_opens;
-                document.getElementById('metric-txs').innerText = data.metrics.total_transactions;
-
-                const catList = document.getElementById('categories-list');
-                catList.innerHTML = Object.entries(data.categories)
-                    .map(([cat, count]) => `<li><span>${cat}</span><b>${count}</b></li>`)
-                    .join('') || '<li><span>Нет данных</span></li>';
-
-                const feed = document.getElementById('events-feed');
-                feed.innerHTML = data.recent_events.reverse()
-                    .map(e => `<li><span>${e.event} (${e.user_id})</span><small>${e.timestamp.split('T')[1].slice(0,5)}</small></li>`)
-                    .join('');
+                document.getElementById('app-opens').textContent = data.app_opens || 0;
+                document.getElementById('total-users').textContent = data.unique_users || 0;
             } catch (err) {
                 logout();
             }
@@ -125,8 +81,8 @@
 
         function logout() {
             localStorage.removeItem('admin_token');
-            document.getElementById('dashboard-screen').style.display = 'none';
-            document.getElementById('login-screen').style.display = 'block';
+            document.getElementById('login-block').style.display = 'block';
+            document.getElementById('dashboard-block').style.display = 'none';
         }
     </script>
 </body>

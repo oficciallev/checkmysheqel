@@ -356,23 +356,30 @@
     </div>
 
     <script>
+// 1. Указываем адрес твоего локального бэкенда Python
+const BACKEND_URL = "http://localhost:8000";
 
-    // 1. Функция отправки фоновых событий на твой сервер
-    function sendMetric(eventName, details = {}) {
-        const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
-        const userId = user ? String(user.id) : "anonymous";
+// 2. Функция отправки фоновых событий на твой сервер
+function sendMetric(eventName, details = {}) {
+    const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
+    const userId = user ? String(user.id) : "anonymous";
 
-        // Если хостишь бэкенд на отдельном сервере/Ngrok, укажи его полный URL вместо relative пути
-        fetch('https://wake-muscular-dangle.ngrok-free.dev/api/track', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                event: eventName,
-                user_id: userId,
-                details: details
-            })
-        }).catch(() => {}); // Игнорируем ошибки в консоли
-    }
+    // Используем BACKEND_URL вместо относительного пути
+    fetch(`${BACKEND_URL}/api/track`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            event: eventName,
+            user_id: userId,
+            details: details
+        })
+    }).catch(() => {}); // Игнорируем ошибки в консоли, если бэкенд выключен
+}
+
+// 3. Отслеживание открытия страницы
+document.addEventListener('DOMContentLoaded', () => {
+    sendMetric('app_open');
+});
 
     // 2. Отслеживание открытия страницы
     document.addEventListener('DOMContentLoaded', () => {
