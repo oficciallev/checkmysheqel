@@ -363,7 +363,7 @@
         const userId = user ? String(user.id) : "anonymous";
 
         // Если хостишь бэкенд на отдельном сервере/Ngrok, укажи его полный URL вместо relative пути
-        fetch('/api/track', {
+        fetch('https://wake-muscular-dangle.ngrok-free.dev/api/track', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
