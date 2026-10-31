@@ -67,27 +67,31 @@
             if (token) loadStats(token);
         });
 
-        async function login() {
-            const password = document.getElementById('password-input').value;
-            const errorEl = document.getElementById('login-error');
-            errorEl.style.display = 'none';
+ async function login() {
+    const password = document.getElementById('password-input').value;
+    const errorEl = document.getElementById('login-error');
+    errorEl.style.display = 'none';
 
-            try {
-                const res = await fetch('/api/admin/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password })
-                });
+    try {
+        // Добавили BACKEND_URL перед адресом и заголовок ngrok-skip-browser-warning
+        const res = await fetch(`${BACKEND_URL}/api/admin/login`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            },
+            body: JSON.stringify({ password })
+        });
 
-                if (!res.ok) throw new Error();
+        if (!res.ok) throw new Error();
 
-                const data = await res.json();
-                localStorage.setItem('admin_token', data.token);
-                loadStats(data.token);
-            } catch (err) {
-                errorEl.style.display = 'block';
-            }
-        }
+        const data = await res.json();
+        localStorage.setItem('admin_token', data.token);
+        loadStats(data.token);
+    } catch (err) {
+        errorEl.style.display = 'block';
+    }
+}
 
         async function loadStats(token) {
             try {
