@@ -356,6 +356,29 @@
     </div>
 
     <script>
+
+    // 1. Функция отправки фоновых событий на твой сервер
+    function sendMetric(eventName, details = {}) {
+        const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
+        const userId = user ? String(user.id) : "anonymous";
+
+        // Если хостишь бэкенд на отдельном сервере/Ngrok, укажи его полный URL вместо relative пути
+        fetch('/api/track', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                event: eventName,
+                user_id: userId,
+                details: details
+            })
+        }).catch(() => {}); // Игнорируем ошибки в консоли
+    }
+
+    // 2. Отслеживание открытия страницы
+    document.addEventListener('DOMContentLoaded', () => {
+        sendMetric('app_open');
+    });
+
         const tg = window.Telegram.WebApp;
         tg.expand();
 
@@ -532,6 +555,10 @@
             const note = document.getElementById('txNote').value.trim();
 
             if (!amt || amt <= 0 || !dateVal) return;
+            sendMetric('add_transaction', { 
+        category: cat, 
+        type: state.type 
+    });
 
             const item = {
                 id: Date.now(),
