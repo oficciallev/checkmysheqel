@@ -55,7 +55,6 @@
             margin: 0 auto;
         }
 
-        /* Поправленная шапка: 2 строчки */
         .header {
             display: flex;
             flex-direction: column;
@@ -356,38 +355,34 @@
     </div>
 
     <script>
-// 1. Указываем адрес твоего локального бэкенда Python
-const BACKEND_URL = "http://localhost:8000";
+        // 1. Указываем адрес бэкенда
+        const BACKEND_URL = "http://localhost:8000";
 
-// 2. Функция отправки фоновых событий на твой сервер
-function sendMetric(eventName, details = {}) {
-    const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
-    const userId = user ? String(user.id) : "anonymous";
+        // 2. Универсальная функция отправки фоновых событий на бэкенд
+        function sendMetric(eventName, details = {}) {
+            const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
+            const userId = user?.id ? String(user.id) : "anonymous";
+            const username = user?.username ? `@${user.username}` : (user?.first_name || "Guest");
 
-    // Используем BACKEND_URL вместо относительного пути
-    fetch(`${BACKEND_URL}/api/track`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            event: eventName,
-            user_id: userId,
-            details: details
-        })
-    }).catch(() => {}); // Игнорируем ошибки в консоли, если бэкенд выключен
-}
-
-// 3. Отслеживание открытия страницы
-document.addEventListener('DOMContentLoaded', () => {
-    sendMetric('app_open');
-});
-
-    // 2. Отслеживание открытия страницы
-    document.addEventListener('DOMContentLoaded', () => {
-        sendMetric('app_open');
-    });
+            fetch(`${BACKEND_URL}/api/track`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_id: userId,
+                    username: username,
+                    event: eventName,
+                    details: details
+                })
+            }).catch(() => {});
+        }
 
         const tg = window.Telegram.WebApp;
-        tg.expand();
+        
+        // 3. Расширяем WebApp и отправляем отметку о заходе
+        document.addEventListener('DOMContentLoaded', () => {
+            if (tg) tg.expand();
+            sendMetric('app_open');
+        });
 
         const dict = {
             ru: {
@@ -482,9 +477,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('themeSelect').value = state.theme;
             document.getElementById('currSelect').value = state.curr;
             
-            // Установка дефолтной даты
             resetDateField();
-
             setTheme(state.theme);
             setLang(state.lang);
             render();
@@ -562,10 +555,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const note = document.getElementById('txNote').value.trim();
 
             if (!amt || amt <= 0 || !dateVal) return;
-            sendMetric('add_transaction', { 
-        category: cat, 
-        type: state.type 
-    });
+
+            // 🔥 Фиксируем действие дохода/расхода в бэкенд
+            const eventName = state.type === 'income' ? 'add_income' : 'add_expense';
+            sendMetric(eventName, { 
+                amount: amt,
+                category: cat, 
+                currency: state.curr,
+                note: note 
+            });
 
             const item = {
                 id: Date.now(),
@@ -664,7 +662,6 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('totalIncome').textContent = `+${fmt(inc)}`;
             document.getElementById('totalExpense').textContent = `-${fmt(exp)}`;
 
-            // Список операций
             const list = document.getElementById('txList');
             list.innerHTML = '';
 
